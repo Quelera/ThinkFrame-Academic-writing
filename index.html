@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinkFrame - Voice-Driven Academic Writing Assistant</title> <!-- Slightly punchier title -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.3.4/dist/purify.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js"></script>
+    <!-- Link Google Fonts for a more polished look -->
+     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <script>
+        // Initialize marked with default options
+        window.marked = marked.marked;
+    </script>
+
+    <link href="styles/main.css" rel="stylesheet">    <style>        /* Light mode background color */
+        body.light-theme {
+            background-color: #EDF7F6;  /* Light cyan */
+        }
+
+        /* Additional specific styles for index.html enhancements */        .hero-section h1.main-title { /* Target the specific h1 */
+            font-family: 'Inter', sans-serif;
+            letter-spacing: -0.02em;
+        }
+        .hero-section h2.subtitle {
+            font-family: 'Inter', sans-serif;
+            font-weight: 500; /* Medium weight */
+        }
+        .hero-section .intro-paragraph {
+            font-size: 1.125rem; /* text-lg */
+            line-height: 1.75;
+            max-width: 650px; /* Control width for readability */
+        }
+
+        /* Styling for the generation buttons container */
+        .generation-step-buttons {
+            /* border-top: 1px solid var(--border-light); */ /* Optional separator */
+            /* padding-top: 1rem; */
+            /* margin-top: 1rem; */
+        }
+        .dark-theme .generation-step-buttons {
+            /* border-top-color: var(--border-dark); */
+        }        /* Custom styles for this page */
+    </style>
+</head>
+<body class="light-theme">
+    <div class="wave-bg"></div>
+    <div class="wave-animation"></div>
+    
+    <nav class="fixed top-0 w-full z-50 py-3 px-4 md:px-6 nav-bg">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-primary text-2xl font-bold text-blue-600">ThinkFrame</span> <!-- Apply special font -->
+                <span class="hidden md:inline-block text-sm opacity-75">|  A Smart Writing Tool Based on Voice
+                     Prompts
+                </span> <!-- Softer subtitle -->
+            </div>            <div class="flex items-center space-x-4 md:space-x-6">                <button 
+                    class="nav-option flex items-center space-x-2" 
+                    id="howItWorks" 
+                    aria-label="How it works"
+                    onKeyDown="if(event.key === 'Enter') this.click()"
+                >
+                    <i class="fas fa-question-circle text-blue-600"></i>
+                    <span class="hidden md:inline-block opacity-75">How It Works</span>
+                </button><div class="relative"><!-- Wrapper for theme toggle and dropdown -->                    <button type="button" class="nav-option flex items-center space-x-2" id="themeToggleBtn" tabindex="0" aria-haspopup="true" aria-expanded="false" aria-label="Change theme">
+                        <i class="fas fa-cog text-blue-600" id="themeIcon"></i>
+                        <span class="hidden md:inline-block opacity-75">Theme</span>
+                    </button>
+                    <div class="theme-dropdown" id="themeDropdownMenu" role="menu" aria-label="Theme selection">
+                        <button type="button" class="theme-option w-full text-left" data-theme="light" role="menuitem"><i class="fas fa-sun mr-2 w-4"></i>Light</button>
+                        <button type="button" class="theme-option w-full text-left" data-theme="dark" role="menuitem"><i class="fas fa-moon mr-2 w-4"></i>Dark</button>
+                        <button type="button" class="theme-option w-full text-left" data-theme="system" role="menuitem"><i class="fas fa-desktop mr-2 w-4"></i>System</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+      <main class="pb-20 pt-24 md:pt-28"> <!-- Removed container class to allow full width -->
+        <section id="startPage" class="section active flex flex-col items-center justify-center min-h-[calc(100vh-100px)] hero-section">
+            <div class="text-center mb-12 md:mb-16">                <h1 class="main-title text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-600 font-['Inter']">
+                   ThinkFrame
+                </h1>                <h2 class="subtitle text-2xl md:text-3xl text-gray-600 dark:text-gray-300 mb-8">
+                    Voice-Driven Academic Writing Assistant
+                </h2>
+            </div>
+            
+            <div class="mic-btn-container text-center">
+                <p class="text-lg font-semibold mb-4 opacity-80">Ready to Start?</p>
+                <div class="mic-btn relative" id="micButton" tabindex="0" role="button" aria-label="Tap to start/stop recording">
+                    <div class="sound-waves"><div class="wave"></div><div class="wave"></div><div class="wave"></div></div>
+                    <i class="fas fa-microphone text-white text-4xl"></i>
+                </div>
+                <p class="mt-6 text-sm text-gray-500 dark:text-gray-400" id="micStatus">Tap the microphone to start speaking your ideas</p>
+                
+                <div class="transcript-input-container mt-6" id="transcriptInputSection">
+                    <label for="transcriptText" class="sr-only">Your Core Ideas:</label> <!-- Screen reader label -->
+                    <textarea id="transcriptText" class="text-input w-full p-4 text-gray-700 dark:text-gray-200" rows="7" placeholder="Your transcribed thoughts will appear here. Edit anytime..."></textarea>
+                </div>
+                
+                <!-- Title Output Section -->
+                <div id="titleOutputContainer" class="mt-8 w-full max-w-4xl mx-auto hidden">
+                    <div class="mb-6">
+                        <h3 class="text-xl font-semibold mb-4">Generated Titles</h3>
+                        <ul id="titlesList" class="space-y-4"></ul>
+                    </div>
+                    
+                    <div id="selectedTitleSection" class="mb-6 hidden">
+                        <h4 class="text-lg font-medium mb-2">Selected Title</h4>
+                        <div id="selectedTitleContent" class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"></div>
+                    </div>
+                    
+                    <div id="titleOutputContent" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6"></div>
+                </div>                <!-- Generation Controls -->
+                <div class="generation-step-buttons grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6">
+                    <button id="genTitleBtn" class="action-btn step-btn px-4 py-3 rounded-lg btn-primary text-white flex items-center justify-center text-base font-medium">
+                        <i class="fas fa-heading mr-2"></i> Draft Title
+                    </button>
+                    <button id="genConceptBtn" class="action-btn step-btn px-4 py-3 rounded-lg btn-primary text-white flex items-center justify-center text-base font-medium" disabled>
+                        <i class="fas fa-file-alt mr-2"></i> Draft Concept
+                    </button>
+                    <button id="genProposalBtn" class="action-btn step-btn px-4 py-3 rounded-lg btn-primary text-white flex items-center justify-center text-base font-medium" disabled>
+                        <i class="fas fa-project-diagram mr-2"></i> Draft Proposal
+                    </button>
+                </div>
+                <div class="flex justify-end mt-4">
+                    <button id="clearAllBtn" class="text-xs px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors">
+                        <i class="fas fa-times mr-1"></i> Clear All
+                    </button>                </div>
+                <div id="conceptOutputContainer" class="generated-output-container hidden mt-4">                    <h4 class="flex justify-between items-center">Generated Concept Paper
+                        <div class="flex gap-2">
+                            <button class="copy-btn-simple btn-outline px-2 py-1 rounded" data-target="conceptOutputContent">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                            <button class="export-doc-btn btn-outline px-2 py-1 rounded" onclick="handleExport('conceptOutputContent', 'doc')">
+                                <i class="fas fa-file-word mr-1"></i>DOC
+                            </button>
+                            <button class="export-pdf-btn btn-outline px-2 py-1 rounded" onclick="handleExport('conceptOutputContent', 'pdf')">
+                                <i class="fas fa-file-pdf mr-1"></i>PDF
+                            </button>
+                        </div>
+                    </h4>
+                    <div id="conceptOutputContent" class="generated-output-content p-3"></div>
+                </div>
+                <div id="proposalOutputContainer" class="generated-output-container hidden mt-4">                    <h4 class="flex justify-between items-center">Generated Proposal
+                        <div class="flex gap-2">
+                            <button class="copy-btn-simple btn-outline px-2 py-1 rounded" data-target="proposalOutputContent">
+                                <i class="fas fa-copy mr-1"></i>Copy
+                            </button>
+                            <button class="export-doc-btn btn-outline px-2 py-1 rounded" onclick="handleExport('proposalOutputContent', 'doc')">
+                                <i class="fas fa-file-word mr-1"></i>DOC
+                            </button>
+                            <button class="export-pdf-btn btn-outline px-2 py-1 rounded" onclick="handleExport('proposalOutputContent', 'pdf')">
+                                <i class="fas fa-file-pdf mr-1"></i>PDF
+                            </button>
+                        </div>
+                    </h4>
+                    <div id="proposalOutputContent" class="generated-output-content p-3"></div>
+                </div>
+                </div>
+            </div>
+        </section>          <dialog id="howItWorksModal" class="fixed inset-0 hidden z-50 flex items-center justify-center bg-transparent">
+             <div class="modal-content bg-[#E6E6FA] dark:bg-gray-800 rounded-xl p-6 max-w-2xl mx-4 relative border border-gray-200">
+                <button 
+                    id="closeHowItWorksModal" 
+                    class="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+                    aria-label="Close help dialog"
+                    onKeyDown="if(event.key === 'Enter') this.click()"
+                >
+                    <i class="fas fa-times"></i>
+                </button>
+                <h2 class="text-2xl font-bold mb-4">How ThinkFrame Works</h2>
+                <div class="text-gray-600 dark:text-gray-300">
+                    <ol class="list-decimal pl-6 space-y-2">
+                        <li>Tap the microphone to speak your core ideas. The text will appear below.</li>
+                        <li>Click "Draft Title".</li>
+                        <li>Once the title appears, "Draft Concept" will be enabled. Click it.</li>
+                        <li>After the concept paper, "Draft Proposal" will be enabled.</li>
+                        <li>Use "Clear All" to reset the input and all generated content.</li>
+                    </ol>
+                </div>
+            </div>
+        </dialog>
+    </main>    <script src="scripts/promptGenerators/titleGenerator.js" type="module"></script>
+    <script src="scripts/promptGenerators/conceptPaperGenerator_simplified.js" type="module"></script>
+    <script src="scripts/promptGenerators/proposalGenerator_simplified.js" type="module"></script>
+    <script type="module">
+        // Ensure modules are loaded before main.js
+        window.moduleLoadPromise = Promise.all([
+            import('./scripts/promptGenerators/titleGenerator.js'),
+            import('./scripts/promptGenerators/conceptPaperGenerator_simplified.js'),
+            import('./scripts/promptGenerators/proposalGenerator_simplified.js')
+        ]).catch(error => console.error('Error loading modules:', error));
+    </script>
+    <script src="scripts/main.js" type="module"></script>
+</body>
+</html>
